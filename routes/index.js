@@ -9,5 +9,6 @@ router.get('/', function (req, res, next) {
 
 router.get('/api/pids', db.getAllPIDs)
 router.post('/api/pid', db.createPID)
+router.delete('/api/pid/:id', db.deletePID)
 // TODO:  Add sanitization
 module.exports = router

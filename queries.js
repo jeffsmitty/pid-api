@@ -27,8 +27,7 @@ const getAllPIDs = (req, res, next) => {
           status: 'success',
           data: data,
           message: 'Retrieved ALL PIDs',
-          apiversion: '1.0',
-          apimessage: 'This version of the PID API is depreceated. Please use the latest version.  More info: '
+          apiversion: 'Using latest version of the USGS PID API'
         })
     })
     .catch(function (err) {
@@ -59,7 +58,23 @@ const createPID = (req, res, next) => {
     })
 }
 
+function deletePID (req, res, next) {
+  var uuid = parseInt(req.params.pid)
+  db.result('delete from pid where pid = $1', uuid)
+    .then(function (result) {
+      res.status(200)
+        .json({
+          status: 'success',
+          message: `Removed ${result.rowCount} PID`
+        })
+    })
+    .catch(function (err) {
+      return next(err)
+    })
+}
+
 module.exports = {
   getAllPIDs,
-  createPID
+  createPID,
+  deletePID
 }
