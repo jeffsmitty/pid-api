@@ -27,7 +27,8 @@ const getAllPIDs = (req, res, next) => {
           status: 'success',
           data: data,
           message: 'Retrieved ALL PIDs',
-          version: 'Using latest version of the USGS PID API'
+          apiversion: '1.0',
+          apimessage: 'This version of the PID API is depreceated. Please use the latest version.  More info: '
         })
     })
     .catch(function (err) {
@@ -49,7 +50,8 @@ const createPID = (req, res, next) => {
           status: 'success',
           data: data,
           message: 'Inserted a PID',
-          version: 'Using latest version of the USGS PID API'
+          apiversion: '1.0',
+          apimessage: 'This version of the PID API is depreceated. Please use the latest version.  More info: '
         })
     })
     .catch(function (err) {
