@@ -19,7 +19,8 @@ const pool = {
 }
 
 const db = pgp(pool)
-const getAllPIDs = (req, res, next) => {
+const v1getAllPIDs = (req, res, next) => {
+  console.info('Creating PID')
   db.any('SELECT * FROM pid ORDER BY created DESC')
     .then(function (data) {
       res.status(200)
@@ -27,7 +28,8 @@ const getAllPIDs = (req, res, next) => {
           status: 'success',
           data: data,
           message: 'Retrieved ALL PIDs',
-          apiversion: 'Using latest version of the USGS PID API'
+          apiVersion: 'v1',
+          apiMessage: 'Using latest version of the USGS PID API'
         })
     })
     .catch(function (err) {
@@ -35,22 +37,22 @@ const getAllPIDs = (req, res, next) => {
     })
 }
 
-const createPID = (req, res, next) => {
+const v1createPID = (req, res, next) => {
   var now = moment().format()
   req.body.username = 'jasmith@contractor.usgs.gov'
   req.body.created = now
   req.body.modified = now
   req.body.uuid = uuidv4()
-  db.none('insert into pid(title, purl, username, pid, created, modified) values (${title}, ${purl}, ${username}, ${uuid}, ${created}, ${modified})',
+  req.body.apiversion = 'v1'
+  db.none('insert into pid(title, purl, apiversion, username, pid, created, modified) values (${title}, ${purl}, ${apiversion}, ${username}, ${uuid}, ${created}, ${modified})',
     req.body)
     .then(function (data) {
       res.status(200)
         .json({
           status: 'success',
-          data: data,
-          message: 'Inserted a PID',
-          apiversion: '1.0',
-          apimessage: 'This version of the PID API is depreceated. Please use the latest version.  More info: '
+          message: 'Created PID',
+          apiVersion: 'v1',
+          apiMessage: 'Using latest version of the USGS PID API'
         })
     })
     .catch(function (err) {
@@ -58,14 +60,17 @@ const createPID = (req, res, next) => {
     })
 }
 
-function deletePID (req, res, next) {
-  var uuid = parseInt(req.params.pid)
+function v1deletePID (req, res, next) {
+  // var uuid = parseInt(req.params.pid)
+  const uuid = req.params.pid
+  console.log('uuid param is ' + uuid)
   db.result('delete from pid where pid = $1', uuid)
     .then(function (result) {
       res.status(200)
         .json({
           status: 'success',
-          message: `Removed ${result.rowCount} PID`
+          apiVersion: 'v1',
+          apiMessage: 'Using latest version of the USGS PID API'
         })
     })
     .catch(function (err) {
@@ -74,7 +79,7 @@ function deletePID (req, res, next) {
 }
 
 module.exports = {
-  getAllPIDs,
-  createPID,
-  deletePID
+  v1getAllPIDs,
+  v1createPID,
+  v1deletePID
 }
