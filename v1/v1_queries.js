@@ -9,6 +9,11 @@ const options = {
 }
 
 const pgp = require('pg-promise')(options)
+const monitor = require('pg-monitor')
+monitor.attach(options) // attach to all events at once;
+monitor.setLog((msg, info) => {
+  // TODO:  Save the screen message into a log file or send to graylog
+})
 
 // Configuration Object
 const pool = {
@@ -20,10 +25,29 @@ const pool = {
 }
 
 const db = pgp(pool)
+
+const v1_getSinglePID = (req, res, next) => {
+  var uuid = req.params.pid
+  db.one('SELECT * FROM pid where pid = $1', uuid)
+    .then(data => {
+      res.status(200)
+        .json({
+          status: 'success',
+          data: data,
+          message: 'Retrieved PID',
+          apiVersion: 'v1',
+          apiMessage: 'Using latest version of the USGS PID API'
+        })
+    })
+    .catch(function (err) {
+      return500(res)
+      return next(err)
+    })
+}
+
 const v1_getAllPIDs = (req, res, next) => {
-  console.info('Creating PID')
   db.any('SELECT * FROM pid ORDER BY created DESC')
-    .then(function (data) {
+    .then(data => {
       res.status(200)
         .json({
           status: 'success',
@@ -34,6 +58,7 @@ const v1_getAllPIDs = (req, res, next) => {
         })
     })
     .catch(function (err) {
+      return500(res)
       return next(err)
     })
 }
@@ -46,42 +71,70 @@ const v1_createPID = (req, res, next) => {
   req.body.pid = uuidv4()
   req.body.apiversion = 'v1'
   req.body.purl = 'https://www.usgs.gov/purls/' + req.body.pid
-  db.none('insert into pid(title, url, purl, apiversion, username, pid, created, modified) values ($(title), $(url), $(purl), $(apiversion), $(username), $(pid), $(created), $(modified))',
+  db.one('insert into pid(title, url, purl, apiversion, username, pid, created, modified) values ($(title), $(url), $(purl), $(apiversion), $(username), $(pid), $(created), $(modified)) RETURNING title, pid',
     req.body)
-    .then(function (data) {
+    .then(data => {
       res.status(200)
         .json({
           status: 'success',
-          message: 'Created PID',
+          message: 'Created PID: ' + data.pid + ' for item \'' + data.title + '\'',
           apiVersion: 'v1',
           apiMessage: 'Using latest version of the USGS PID API'
         })
     })
     .catch(function (err) {
+      return500(res)
       return next(err)
     })
 }
 
-function v1_deletePID (req, res, next) {
+const v1_deletePID = (req, res, next) => {
   const uuid = req.body.pid
-  console.log('uuid param is ' + uuid)
+  // TODO - put all query text into a queryfile
   db.result('delete from pid where pid = $1', uuid)
-    .then(function (result) {
-      res.status(200)
-        .json({
-          status: 'success',
-          message: 'Deleted PID',
-          apiVersion: 'v1',
-          apiMessage: 'Using latest version of the USGS PID API'
-        })
+    .then(result => {
+      if (result.RowCount === 1) {
+        res.status(200)
+          .json({
+            status: 'success',
+            message: 'PID ' + uuid + ' deleted successfully',
+            apiVersion: 'v1',
+            apiMessage: 'Using latest version of the USGS PID API'
+          })
+      } else {
+        res.status(400)
+          .json({
+            status: 'error',
+            message: 'PID ' + uuid + ' not found',
+            apiVersion: 'v1',
+            apiMessage: 'Using latest version of the USGS PID API'
+          })
+      }
     })
     .catch(function (err) {
+      return500(res)
       return next(err)
+    })
+}
+
+const v1_updatePID = (req, res, next) => {
+  console.log('update')
+}
+
+const return500 = (res) => {
+  res.status(500)
+    .json({
+      status: 'error',
+      message: 'Error 500:  Internal Server Error',
+      apiVersion: 'v1',
+      apiMessage: 'Using latest version of the USGS PID API'
     })
 }
 
 module.exports = {
   v1_getAllPIDs,
   v1_createPID,
-  v1_deletePID
+  v1_deletePID,
+  v1_updatePID,
+  v1_getSinglePID
 }
