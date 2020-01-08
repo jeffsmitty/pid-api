@@ -2,17 +2,18 @@
 const uuidv4 = require('uuid/v4')
 const moment = require('moment')
 const promise = require('bluebird')
-
 const options = {
   // Initialization Options
   promiseLib: promise
 }
-
 const pgp = require('pg-promise')(options)
+
 const monitor = require('pg-monitor')
 monitor.attach(options) // attach to all events at once;
 monitor.setLog((msg, info) => {
-  // TODO:  Save the screen message into a log file or send to graylog
+  console.log(msg)
+  // console.log(info)
+  // TODO:  Save to file?
 })
 
 // Configuration Object

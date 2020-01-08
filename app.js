@@ -1,9 +1,9 @@
-var createError = require('http-errors')
 var express = require('express')
+var expressWinston = require('express-winston')
+var winston = require('winston')
+var createError = require('http-errors')
 var path = require('path')
 var cookieParser = require('cookie-parser')
-var logger = require('morgan')
-
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 
@@ -13,14 +13,42 @@ var app = express()
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
-app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
+// transports for the express-winston logger and our general purpose logger
+var pidTransports = [
+  new winston.transports.File({
+    level: 'info',
+    filename: './logs/pidlog.log',
+    handleExceptions: true,
+    json: true,
+    // maxsize: 5242880, // 5MB
+    // maxFiles: 5,
+    colorize: true
+  }),
+  new winston.transports.Console({
+    handleExceptions: true,
+    json: true,
+    colorize: true
+  })
+]
+
+// Place the express-winston logger before the router.
+app.use(expressWinston.logger({
+  transports: pidTransports,
+  exitOnError: false
+}))
+
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
+
+// Place the express-winston errorLogger after the router.
+app.use(expressWinston.errorLogger({
+  transports: pidTransports
+}))
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
