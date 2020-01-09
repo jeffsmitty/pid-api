@@ -19,6 +19,6 @@ Built on top of node-postgres, this library adds the following:
 
 bluebird
 express-validator
-morgan:  Morgan is a HTTP request logger middleware for Node.js. It simplifies the process of logging requests to your application. You might think of Morgan as a helper that generates request logs.
 
-winston:
+winston: general logger for application
+express-winston: logger for express built using winston - logs internal express messages

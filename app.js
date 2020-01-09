@@ -1,3 +1,11 @@
+// Set the run environment
+process.env.NODE_ENV = 'development'
+// process.env.NODE_ENV = 'staging'
+// process.env.NODE_ENV = 'production'
+
+// config variables for the declared environment
+const config = require('./config/config.js')
+
 var express = require('express')
 var expressWinston = require('express-winston')
 var winston = require('winston')
@@ -18,15 +26,15 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
-// transports for the express-winston logger and our general purpose logger
+// Define some transports for use by winston and express-winston
 var pidTransports = [
   new winston.transports.File({
     level: 'info',
     filename: './logs/pidlog.log',
     handleExceptions: true,
     json: true,
-    // maxsize: 5242880, // 5MB
-    // maxFiles: 5,
+    maxsize: 5242880, // 5MB
+    maxFiles: 5,
     colorize: true
   }),
   new winston.transports.Console({
@@ -65,5 +73,7 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500)
   res.render('error')
 })
+
+console.log(`${global.gConfig.app_name}` + ' Running under ' + `${global.gConfig.config_id}`)
 
 module.exports = app

@@ -17,11 +17,7 @@ router.post('/api/v1/pid', [
     .not().isEmpty()
     .trim()
     .escape()
-    .withMessage('Title must not be empty'),
-  check('url')
-    .not().isEmpty()
-    .isURL()
-    .withMessage('URL must be a valid URL')
+    .withMessage('Title must not be empty')
 ], (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {

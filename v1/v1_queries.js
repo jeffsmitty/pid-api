@@ -2,18 +2,18 @@
 const uuidv4 = require('uuid/v4')
 const moment = require('moment')
 const promise = require('bluebird')
+
+// Initialization Options
 const options = {
-  // Initialization Options
   promiseLib: promise
 }
 const pgp = require('pg-promise')(options)
 
+// pgmonitor sends db output for all postgres events to the console
 const monitor = require('pg-monitor')
 monitor.attach(options) // attach to all events at once;
 monitor.setLog((msg, info) => {
   console.log(msg)
-  // console.log(info)
-  // TODO:  Save to file?
 })
 
 // Configuration Object
@@ -24,6 +24,14 @@ const pool = {
   password: 'password',
   port: 5432
 }
+
+// const pool = {
+//   database: global.gConfig.database,
+//   host: global.gConfig.db_host,
+//   port: global.gConfig.db_port,
+//   user: global.gConfig.db_user,
+//   password: global.gConfig.db_password
+// }
 
 const db = pgp(pool)
 
@@ -66,13 +74,12 @@ const v1_getAllPIDs = (req, res, next) => {
 
 const v1_createPID = (req, res, next) => {
   var now = moment().format()
-  req.body.username = 'jasmith@contractor.usgs.gov'
+  req.body.createdby = 'jasmith@contractor.usgs.gov'
   req.body.created = now
   req.body.modified = now
   req.body.pid = uuidv4()
   req.body.apiversion = 'v1'
-  req.body.purl = 'https://www.usgs.gov/purls/' + req.body.pid
-  db.one('insert into pid(title, url, purl, apiversion, username, pid, created, modified) values ($(title), $(url), $(purl), $(apiversion), $(username), $(pid), $(created), $(modified)) RETURNING title, pid',
+  db.one('insert into pid(created, pid, title, createdby, modified, apiversion, url, pidtype) values ($(created), $(pid), $(title), $(createdby), $(modified), $(apiversion), $(url), $(pidtype)) RETURNING title, pid',
     req.body)
     .then(data => {
       res.status(200)

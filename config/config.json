@@ -1,0 +1,27 @@
+{
+    "development": {
+        "config_id": "development",
+        "app_name": "Permanent ID Generator",
+        "app_desc": "An application to generate and store permanent ID's for USGS metadata and datasets",
+        "node_port": 80,
+        "purl_prefix": "https://www1-dev.snafu.cr.usgs.gov/purls/",
+        "database": "pid",
+        "db_host": "localhost",
+        "db_user": "app_pid",
+        "db_password": "password",
+        "db_port": 5432
+    },
+    "local": {
+        "config_id": "local",
+        "node_port": 3000,
+        "purl_prefix": "http://localhost:3000/purls"
+    },
+    "staging": {
+        "config_id": "staging",
+        "purl_prefix": "https://www1-staging.snafu.cr.usgs.gov/purls/"
+    },
+    "production": {
+        "config_id": "production",
+        "purl_prefix": "https://www1.usgs.gov/purls/"
+    }
+}
