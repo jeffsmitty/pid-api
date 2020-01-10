@@ -4,16 +4,19 @@ process.env.NODE_ENV = 'development'
 // process.env.NODE_ENV = 'production'
 
 // config variables for the declared environment
-const config = require('./config/config.js')
+require('./config/config.js')
 
 var express = require('express')
 var expressWinston = require('express-winston')
 var winston = require('winston')
 var createError = require('http-errors')
 var path = require('path')
+var moment = require('moment')
 var cookieParser = require('cookie-parser')
 var indexRouter = require('./routes/index')
-var usersRouter = require('./routes/users')
+// var usersRouter = require('./routes/users')
+var purlRouter = require('./routes/purlRouter')
+var apiRouter = require('./routes/apiRouter')
 
 var app = express()
 
@@ -50,8 +53,11 @@ app.use(expressWinston.logger({
   exitOnError: false
 }))
 
+// Main app routes
 app.use('/', indexRouter)
-app.use('/users', usersRouter)
+app.use('/api', apiRouter)
+app.use('/purl', purlRouter)
+// app.use('/users', usersRouter)
 
 // Place the express-winston errorLogger after the router.
 app.use(expressWinston.errorLogger({
@@ -74,6 +80,6 @@ app.use(function (err, req, res, next) {
   res.render('error')
 })
 
-console.log(`${global.gConfig.app_name}` + ' Running under ' + `${global.gConfig.config_id}`)
+console.log('**** ' + `${global.gConfig.app_name}` + ' started ' + moment().format() + '  - running: ' + `${global.gConfig.config_id}` + ' ****')
 
 module.exports = app
