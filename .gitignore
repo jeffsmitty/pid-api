@@ -1,2 +1,3 @@
 node_modules
-pidlog.log
+logs/pid_combinedlog.log
+logs/pid_errorlog.log

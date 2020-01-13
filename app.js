@@ -1,5 +1,8 @@
-// Set the run environment
-process.env.NODE_ENV = 'development'
+'use strict'
+
+// Set the run environment for the app here
+process.env.NODE_ENV = 'local'
+// process.env.NODE_ENV = 'development'
 // process.env.NODE_ENV = 'staging'
 // process.env.NODE_ENV = 'production'
 
@@ -7,18 +10,19 @@ process.env.NODE_ENV = 'development'
 require('./config/config.js')
 
 var express = require('express')
-var expressWinston = require('express-winston')
-var winston = require('winston')
 var createError = require('http-errors')
 var path = require('path')
-var moment = require('moment')
 var cookieParser = require('cookie-parser')
 var indexRouter = require('./routes/index')
 // var usersRouter = require('./routes/users')
 var purlRouter = require('./routes/purlRouter')
 var apiRouter = require('./routes/apiRouter')
+const expressWinston = require('express-winston')
+const logger = require('./logger.js')
 
 var app = express()
+
+logger.info('**** ' + `${global.gConfig.app_name}` + ' started - run environment: ' + `${global.gConfig.config_id}` + ' ****')
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -29,27 +33,9 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
-// Define some transports for use by winston and express-winston
-var pidTransports = [
-  new winston.transports.File({
-    level: 'info',
-    filename: './logs/pidlog.log',
-    handleExceptions: true,
-    json: true,
-    maxsize: 5242880, // 5MB
-    maxFiles: 5,
-    colorize: true
-  }),
-  new winston.transports.Console({
-    handleExceptions: true,
-    json: true,
-    colorize: true
-  })
-]
-
 // Place the express-winston logger before the router.
 app.use(expressWinston.logger({
-  transports: pidTransports,
+  transports: logger.transports,
   exitOnError: false
 }))
 
@@ -61,7 +47,7 @@ app.use('/purl', purlRouter)
 
 // Place the express-winston errorLogger after the router.
 app.use(expressWinston.errorLogger({
-  transports: pidTransports
+  transports: logger.transports
 }))
 
 // catch 404 and forward to error handler
@@ -79,7 +65,5 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500)
   res.render('error')
 })
-
-console.log('**** ' + `${global.gConfig.app_name}` + ' started ' + moment().format() + '  - running: ' + `${global.gConfig.config_id}` + ' ****')
 
 module.exports = app

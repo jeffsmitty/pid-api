@@ -1,7 +1,10 @@
 /* eslint-disable camelcase */
+'use strict'
+
 const uuidv4 = require('uuid/v4')
 const moment = require('moment')
 const promise = require('bluebird')
+const logger = require('../logger.js')
 
 // Initialization Options
 const options = {
@@ -9,29 +12,20 @@ const options = {
 }
 const pgp = require('pg-promise')(options)
 
-// pgmonitor sends db output for all postgres events to the console
+// pgmonitor sends db output for all postgres events to the console. Does not write to log file.
 const monitor = require('pg-monitor')
 monitor.attach(options) // attach to all events at once;
 monitor.setLog((msg, info) => {
-  console.log(msg)
+  logger.debug(msg)
 })
 
-// Configuration Object
 const pool = {
-  user: 'app_pid',
-  host: 'localhost',
-  database: 'pid',
-  password: 'password',
-  port: 5432
+  database: global.gConfig.database,
+  host: global.gConfig.db_host,
+  port: global.gConfig.db_port,
+  user: global.gConfig.db_user,
+  password: global.gConfig.db_password
 }
-
-// const pool = {
-//   database: global.gConfig.database,
-//   host: global.gConfig.db_host,
-//   port: global.gConfig.db_port,
-//   user: global.gConfig.db_user,
-//   password: global.gConfig.db_password
-// }
 
 const db = pgp(pool)
 
@@ -101,7 +95,8 @@ const v1_deletePID = (req, res, next) => {
   // TODO - put all query text into a queryfile
   db.result('delete from pid where pid = $1', uuid)
     .then(result => {
-      if (result.RowCount === 1) {
+      console.info(result.rowCount)
+      if (result.RowCount === 0) {
         res.status(200)
           .json({
             status: 'success',
