@@ -95,8 +95,8 @@ const v1_deletePID = (req, res, next) => {
   // TODO - put all query text into a queryfile
   db.result('delete from pid where pid = $1', uuid)
     .then(result => {
-      console.info(result.rowCount)
-      if (result.RowCount === 0) {
+      console.info(result)
+      if (result.rowCount === 1) {
         res.status(200)
           .json({
             status: 'success',
