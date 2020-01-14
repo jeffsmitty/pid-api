@@ -12,11 +12,14 @@ const options = {
 }
 const pgp = require('pg-promise')(options)
 
-// pgmonitor sends db output for all postgres events to the console. Does not write to log file.
+// pgmonitor is part of pg-promise and is used to log db transactions
+// Take only the SQL output of pgmonitor and send to our winston logger
+// Change the logger.debug to logger.info to also send to the combined log file
 const monitor = require('pg-monitor')
-monitor.attach(options) // attach to all events at once;
+monitor.attach(options, ['query', 'error'])
 monitor.setLog((msg, info) => {
-  logger.debug(msg)
+  info.display = false // suppress pgmonitor screen output for the event since our winston logger handles that
+  logger.debug(info.text)
 })
 
 const pool = {
@@ -95,7 +98,6 @@ const v1_deletePID = (req, res, next) => {
   // TODO - put all query text into a queryfile
   db.result('delete from pid where pid = $1', uuid)
     .then(result => {
-      console.info(result)
       if (result.rowCount === 1) {
         res.status(200)
           .json({

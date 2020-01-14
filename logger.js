@@ -10,24 +10,24 @@ if (!fs.existsSync(logDir)) {
 }
 
 // Create the main logger which will log errors to a dedicated file and all events to another file.
+// Winston allows you to define a level property on each transport which specifies the maximum level of messages that a transport should log
 const logger = winston.createLogger({
   level: 'info',
-  service: 'APPLICATION',
-  handleExceptions: true,
   format: winston.format.combine(
     winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss'
     }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'app-message' },
   transports: [
     // - Write all logs with level `error` and below to `pid_error.log`
     // - Write all logs with level `info` and below to `pid_combined.log`
     new winston.transports.File({
+      format: winston.format.json(),
       filename: path.join(logDir, 'pid_combined.log')
     }),
     new winston.transports.File({
+      format: winston.format.json(),
       filename: path.join(logDir, 'pid_errorlog.log'),
       level: 'error'
     })
@@ -39,13 +39,21 @@ if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     level: 'debug',
     format: winston.format.combine(
+      winston.format.align(),
       winston.format.colorize(),
       winston.format.simple(),
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      winston.format.printf(info => `${info.level}: ${info.timestamp} - ${info.message}`)
+      winston.format.printf(info => `${info.level}   ${info.timestamp}   ${info.message}`)
     )
   }))
 }
+
+// TODO: When exception handler is added, app crashes
+// logger.exceptions.handle(
+//   new winston.transports.File({
+//     filename: path.join(logDir, 'pid_exceptions.log')
+//   })
+// )
 
 logger.info('Logger started.')
 logger.warn('Test log WARNING message')
