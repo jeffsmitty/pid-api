@@ -9,18 +9,18 @@ process.env.NODE_ENV = 'local'
 // config variables for the declared environment
 require('./config/config.js')
 
-var express = require('express')
-var createError = require('http-errors')
-var path = require('path')
-var cookieParser = require('cookie-parser')
-var indexRouter = require('./routes/index')
-// var usersRouter = require('./routes/users')
-var purlRouter = require('./routes/purlRouter')
-var apiRouter = require('./routes/apiRouter')
+const express = require('express')
+const createError = require('http-errors')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const indexRouter = require('./routes/index')
+// const usersRouter = require('./routes/users')
+const purlRouter = require('./routes/purlRouter')
+const apiRouter = require('./routes/apiRouter')
 const expressWinston = require('express-winston')
 const logger = require('./logger.js')
 
-var app = express()
+const app = express()
 
 logger.info('**** ' + `${global.gConfig.app_name}` + ' started - run environment: ' + `${global.gConfig.config_id}` + ' ****')
 

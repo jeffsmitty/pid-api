@@ -28,6 +28,21 @@ router.post('/v1/pid', [
   }
 })
 
+router.put('/v1/pid', [
+  check('pid')
+    .not().isEmpty()
+    .trim()
+    .escape()
+    .withMessage('PID must not be empty')
+], (req, res, next) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  } else {
+    v1.v1_updatePID(req, res, next)
+  }
+})
+
 router.delete('/v1/pid', [
   check('pid')
     .not().isEmpty()

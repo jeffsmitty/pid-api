@@ -13,8 +13,9 @@ const options = {
 const pgp = require('pg-promise')(options)
 
 // pgmonitor is part of pg-promise and is used to log db transactions
-// Take only the SQL output of pgmonitor and send to our winston logger
-// Change the logger.debug to logger.info to also send to the combined log file
+// Take only the SQL output of pgmonitor and send to our winston logger.
+// Change the logger.debug below to logger.info to also send db query and error
+// output to the combined log file
 const monitor = require('pg-monitor')
 monitor.attach(options, ['query', 'error'])
 monitor.setLog((msg, info) => {
@@ -93,6 +94,34 @@ const v1_createPID = (req, res, next) => {
     })
 }
 
+const v1_updatePID = (req, res, next) => {
+  var now = moment().format()
+  req.body.modified = now
+  const uuid = req.body.pid
+  db.none('update pid set title=$1, modified=$2, url=$3, pidtype=$4 where pid=$5',
+    [
+      req.body.title,
+      req.body.modified,
+      req.body.url,
+      req.body.pidtype,
+      req.body.pid
+    ]
+  )
+    .then(function () {
+      res.status(200)
+        .json({
+          status: 'success',
+          message: 'PID ' + uuid + ' updated successfully',
+          apiVersion: 'v1',
+          apiMessage: 'Using latest version of the USGS PID API'
+        })
+    })
+    .catch(function (err) {
+      return500(res)
+      return next(err)
+    })
+}
+
 const v1_deletePID = (req, res, next) => {
   const uuid = req.body.pid
   // TODO - put all query text into a queryfile
@@ -120,10 +149,6 @@ const v1_deletePID = (req, res, next) => {
       return500(res)
       return next(err)
     })
-}
-
-const v1_updatePID = (req, res, next) => {
-  console.log('update')
 }
 
 const return500 = (res) => {
