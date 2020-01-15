@@ -5,6 +5,7 @@ const uuidv4 = require('uuid/v4')
 const moment = require('moment')
 const promise = require('bluebird')
 const logger = require('../logger.js')
+const apiversion = 'v1'
 
 // Initialization Options
 const options = {
@@ -47,8 +48,8 @@ const v1_getSinglePID = (req, res, next) => {
         })
     })
     .catch(function (err) {
-      return500(res)
-      return next(err)
+      return500(res, err)
+      // return next(err)
     })
 }
 
@@ -65,20 +66,45 @@ const v1_getAllPIDs = (req, res, next) => {
         })
     })
     .catch(function (err) {
-      return500(res)
-      return next(err)
+      return500(res, err)
+      // return next(err)
     })
 }
 
 const v1_createPID = (req, res, next) => {
-  var now = moment().format()
-  req.body.createdby = 'jasmith@contractor.usgs.gov'
-  req.body.created = now
-  req.body.modified = now
-  req.body.pid = uuidv4()
-  req.body.apiversion = 'v1'
-  db.one('insert into pid(created, pid, title, createdby, modified, apiversion, url, pidtype) values ($(created), $(pid), $(title), $(createdby), $(modified), $(apiversion), $(url), $(pidtype)) RETURNING title, pid',
-    req.body)
+  const now = moment().format()
+  const title = req.body.title
+  const pidtype = req.body.pidtype
+
+  const columns = [
+    'pid',
+    'created',
+    'modified',
+    'title',
+    'createdby',
+    'pidtype',
+    'apiversion'
+  ]
+
+  const values = [
+    uuidv4(),
+    now, // created
+    now, // modified
+    title,
+    'jasmith@contractor.usgs.gov',
+    pidtype,
+    apiversion
+  ]
+
+  // URL is optional.  If we have a URL param in the body, add it to the columns and values arrays.
+  if (req.body.url) {
+    columns.push('url')
+    values.push(req.body.url)
+  }
+  // Add the :name filter if your array is a list of SQL names/identifiers, so the array is parsed correctly.
+  // Add the :list filter if your array is a list of values
+  db.one('INSERT INTO pid ($1:name) values ($2:list) RETURNING title, pid', [columns, values])
+  // db.one('insert into pid(created, pid, title, createdby, modified, apiversion, url, pidtype) values ($(created), $(pid), $(title), $(createdby), $(modified), $(apiversion), $(url), $(pidtype)) RETURNING title, pid', req.body)
     .then(data => {
       res.status(200)
         .json({
@@ -89,8 +115,8 @@ const v1_createPID = (req, res, next) => {
         })
     })
     .catch(function (err) {
-      return500(res)
-      return next(err)
+      // return next(err)
+      return500(res, err)
     })
 }
 
@@ -117,8 +143,8 @@ const v1_updatePID = (req, res, next) => {
         })
     })
     .catch(function (err) {
-      return500(res)
-      return next(err)
+      return500(res, err)
+      // return next(err)
     })
 }
 
@@ -146,19 +172,18 @@ const v1_deletePID = (req, res, next) => {
       }
     })
     .catch(function (err) {
-      return500(res)
-      return next(err)
+      return500(res, err)
+      // return next(err)
     })
 }
 
-const return500 = (res) => {
-  res.status(500)
-    .json({
-      status: 'error',
-      message: 'Error 500:  Internal Server Error',
-      apiVersion: 'v1',
-      apiMessage: 'Using latest version of the USGS PID API'
-    })
+const return500 = (res, err) => {
+  res.json({
+    status: 'error',
+    message: 'Error 500:  Internal Server Error',
+    apiVersion: 'v1',
+    apiMessage: 'Using latest version of the USGS PID API'
+  })
 }
 
 module.exports = {
