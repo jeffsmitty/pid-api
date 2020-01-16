@@ -9,8 +9,7 @@
         "db_host": "localhost",
         "db_user": "app_pid",
         "db_password": "password",
-        "db_port": 5432,
-        "log_level": "all"
+        "db_port": 5432
     },
     "development": {
         "config_id": "development",
