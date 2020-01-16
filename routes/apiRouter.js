@@ -4,9 +4,9 @@ const v1 = require('../v1/v1_queries')
 const { check, validationResult } = require('express-validator')
 
 router.get('/', function (req, res, next) {
-  // send to swagger docs when user hits /api
+  // send to swagger ui when user hits /api
   // res.redirect('url');)
-  res.send('swagger docs go here')
+  res.send('swagger ui goes here')
 })
 
 router.get('/v1/pids', v1.v1_getAllPIDs)
@@ -29,8 +29,8 @@ router.post('/v1/pid', [
     .exists()
     .withMessage('Request is missing a required parameter: pidtype')
     .bail()
-    .not().isEmpty()
-    .withMessage('Request must include a pidtype'),
+    .isIn(['metadata', 'image', 'other'])
+    .withMessage('Request must include a pidtype of \'metadata\', \'image\', or \'other\''),
   check('url')
     .optional({ checkFalsy: true })
     .isURL()

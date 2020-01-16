@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'local'
 // process.env.NODE_ENV = 'production'
 
 // config variables for the declared environment
-require('./config/config.js')
+require('./config/config')
 
 const express = require('express')
 const createError = require('http-errors')
